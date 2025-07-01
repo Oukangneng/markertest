@@ -1,54 +1,68 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Add custom markers in Mapbox GL JS</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      href="https://fonts.googleapis.com/css?family=Open+Sans"
-      rel="stylesheet"
-    />
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
-    <link
-      href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css"
-      rel="stylesheet"
-    />
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-      }
+<head>
+  <meta charset="utf-8" />
+  <title>Add custom markers in Mapbox GL JS</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-      #map {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
-      }
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
 
-      <!--code from step 7-3 will go here!-->
+  <style>
+    body{margin:0;padding:0}
+    #map{position:absolute;top:0;bottom:0;width:100%}
+    /* additional style rules can go here */
+  </style>
+</head>
+<body>
+  <div id="map"></div>
 
-      <!--code from step 9 will go here!-->
-    </style>
-  </head>
-  <body>
-    <div id="map"></div>
+  <script>
+    mapboxgl.accessToken =
+      'pk.eyJ1Ijoib3dlbm9jIiwiYSI6ImNtNnh0aHNsODB5ZjcyanE4NTYwMjRrZDcifQ.jIUeVxkI7mayEkFCKHcgKw';
 
-    <script>
-      mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbm9jIiwiYSI6ImNtNnh0aHNsODB5ZjcyanE4NTYwMjRrZDcifQ.jIUeVxkI7mayEkFCKHcgKw';
+    // 1️⃣ Declare the GeoJSON URL correctly
+    const redGeoJSON =
+      'https://oukangneng.github.io/markertest/data/incident_markers.geojson'; // double‑check spelling!
 
-const redGeoJSON:
-    'https://oukangneng.github.io/markertest/data/incident_markers.geojson',
-      
+    // 2️⃣ Create the map
     const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [-96, 37.8],
-        zoom: 3
+      container: 'map',
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [-96, 37.8],
+      zoom: 3
+    });
+
+    // 3️⃣ Add the source & layer once the style is ready
+    map.on('load', () => {
+      map.addSource('incidents', {
+        type: 'geojson',
+        data: redGeoJSON
       });
 
-      //code from step 6 will go here
-      
-    </script>
-  </body>
+      map.addLayer({
+        id: 'incidents-layer',
+        type: 'circle',
+        source: 'incidents',
+        paint: {
+          'circle-radius': 6,
+          'circle-color': '#ff0000'
+        }
+      });
+
+      // Optional pop‑ups
+      map.on('click', 'incidents-layer', (e) => {
+        const f = e.features[0];
+        new mapboxgl.Popup()
+          .setLngLat(f.geometry.coordinates)
+          .setHTML(`<strong>${f.properties.title ?? ''}</strong><p>${f.properties.description ?? ''}</p>`)
+          .addTo(map);
+      });
+
+      map.on('mouseenter', 'incidents-layer', () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', 'incidents-layer', () => map.getCanvas().style.cursor = '');
+    });
+  </script>
+</body>
 </html>
